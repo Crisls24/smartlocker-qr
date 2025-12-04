@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escáner QR - Smart Lock</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Librería de lectura QR -->
+  <script src="https://unpkg.com/html5-qrcode" defer></script>
+</head>
+<body>
+  <div class="container">
+    <h1>📸 Escanear QR del usuario</h1>
+    <div id="reader" style="width:300px; margin:auto;"></div>
+    <p id="result" style="margin-top:15px;"></p>
+    <button onclick="window.location.href='admin.html'">Volver</button>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resultDiv = document.getElementById("result");
+
+      function onScanSuccess(decodedText) {
+        resultDiv.textContent = "QR leído: " + decodedText;
+
+        // Intentar interpretar el contenido del QR como JSON
+        try {
+          const payload = JSON.parse(decodedText);
+
+          fetch('/api/open-with-qr', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.ok) {
+              resultDiv.innerHTML = `<p style='color:green;'>${data.message}</p>`;
+            } else {
+              resultDiv.innerHTML = `<p style='color:red;'>${data.error || 'Error al abrir locker'}</p>`;
+            }
+          })
+          .catch(err => {
+            resultDiv.innerHTML = `<p style='color:red;'>Error de conexión con servidor</p>`;
+          });
+
+        } catch (e) {
+          resultDiv.textContent = "QR inválido: " + decodedText;
+        }
+
+        html5QrcodeScanner.clear(); // Detener la cámara tras leer
+      }
+
+      function onScanFailure(error) {
+        // No hace falta mostrar errores cada frame
+      }
+
+      const html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader",
+        { fps: 10, qrbox: 250 }
+      );
+      html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+    });
+  </script>
+</body>
+</html>
+

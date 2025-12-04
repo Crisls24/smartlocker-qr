@@ -1,0 +1,133 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SmartLock - Admin</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="admin-style.css">
+
+</head>
+<body>
+  <div class="container">
+    <h1>Admin — Lockers</h1>
+
+    <div>
+      <input id="newCode" placeholder="Código locker (ej: LCK-01)" />
+      <button id="create">Crear locker</button>
+    </div>
+
+    <h3 style="margin-top:12px">Lockers</h3>
+    <div id="list"></div>
+
+    <h3 style="margin-top:12px">Asignar locker</h3>
+    <input id="assignLockerId" placeholder="Locker id" />
+    <input id="assignUserId" placeholder="User id" />
+    <button id="assignBtn">Asignar</button>
+
+    <p id="msg" style="margin-top:8px"></p>
+
+    <h3 style="margin-top:20px">Historial de accesos</h3>
+    <div id="logs"></div>
+  </div>
+
+  <script>
+    // 🔹 Cargar lista de lockers
+    async function loadLockers() {
+      const res = await fetch('/api/lockers');
+      const data = await res.json();
+      const list = document.getElementById('list');
+      list.innerHTML = '';
+      data.lockers.forEach(l => {
+        list.innerHTML += `
+          <div style="padding:8px;border:1px solid #eee;margin-bottom:6px">
+            <strong>ID:</strong> ${l.id} &nbsp; 
+            <strong>Code:</strong> ${l.code} &nbsp; 
+            <strong>Status:</strong> ${l.status} &nbsp; 
+            <strong>Assigned:</strong> ${l.assigned_user_id || '-'}
+          </div>`;
+      });
+    }
+
+    // 🔹 Crear nuevo locker
+    document.getElementById('create').addEventListener('click', async () => {
+      const code = document.getElementById('newCode').value.trim();
+      if (!code) return;
+      await fetch('/api/lockers', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ code }) 
+      });
+      document.getElementById('newCode').value = '';
+      await loadLockers();
+      await loadLogs(); // 🔸 actualizar historial
+    });
+
+    // 🔹 Asignar locker
+    document.getElementById('assignBtn').addEventListener('click', async () => {
+      const lockerId = document.getElementById('assignLockerId').value.trim();
+      const userId = document.getElementById('assignUserId').value.trim();
+      const msg = document.getElementById('msg');
+
+      if (!lockerId || !userId) {
+        msg.style.color = 'red';
+        msg.textContent = 'Faltan datos';
+        return;
+      }
+
+      msg.textContent = 'Enviando...';
+
+      const res = await fetch('/api/lockers/assign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lockerId: Number(lockerId), userId: Number(userId) })
+      });
+
+      const data = await res.json();
+      if (data.ok) {
+        msg.style.color = 'green';
+        msg.textContent = 'Asignado correctamente ✅';
+        await loadLockers();
+        await loadLogs(); // 🔸 actualizar historial
+      } else {
+        msg.style.color = 'red';
+        msg.textContent = data.error || 'Error';
+      }
+    });
+
+    // 🔹 Cargar historial de accesos
+    async function loadLogs() {
+      const res = await fetch('/api/lockers/logs');
+      const data = await res.json();
+      const logsDiv = document.getElementById('logs');
+      logsDiv.innerHTML = `
+        <table border="1" style="width:100%; border-collapse:collapse; margin-top:10px;">
+          <tr style="background:#eee;">
+            <th>ID</th>
+            <th>Usuario</th>
+            <th>Locker</th>
+            <th>Acción</th>
+            <th>Éxito</th>
+            <th>Fecha</th>
+          </tr>
+          ${data.logs.map(log => `
+            <tr>
+              <td>${log.id}</td>
+              <td>${log.user_name || '-'}</td>
+              <td>${log.locker_code || '-'}</td>
+              <td>${log.action}</td>
+              <td>${log.success ? '✅' : '❌'}</td>
+              <td>${new Date(log.created_at).toLocaleString()}</td>
+            </tr>
+          `).join('')}
+        </table>
+      `;
+    }
+
+    // 🔹 Inicializar
+    loadLockers();
+    loadLogs();
+  </script>
+</body>
+</html>
+
+

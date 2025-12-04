@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Lock – Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Bienvenida, <span id="userName"></span> 👋</h1>
+    <p>Escanea este código para abrir tu locker:</p>
+    <img id="qrImage" src="" alt="QR del usuario" />
+    <div id="lockerInfo" style="margin-top: 1rem;"></div>
+    <button onclick="logout()">Cerrar sesión</button>
+  </div>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem("smartlock_user"));
+    const qr = localStorage.getItem("smartlock_qr");
+    const token = localStorage.getItem("smartlock_token");
+
+    if (!user || !qr || !token) {
+      window.location.href = "login.html";
+    } else {
+      document.getElementById("userName").innerText = user.name;
+      document.getElementById("qrImage").src = qr;
+
+      // 🔹 Consultar locker asignado desde el backend
+      fetch(`/api/lockers/my-locker?token=${token}`)
+        .then(res => res.json())
+        .then(data => {
+          const lockerDiv = document.getElementById("lockerInfo");
+          if (data.locker) {
+            lockerDiv.innerHTML = `
+              <p><strong>Locker asignado:</strong> ${data.locker.code}</p>
+              <p><strong>Estado:</strong> ${data.locker.status}</p>
+            `;
+          } else {
+            lockerDiv.innerHTML = "<p style='color: gray'>No tienes locker asignado aún.</p>";
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          document.getElementById("lockerInfo").innerHTML =
+            "<p style='color:red'>Error al obtener información del locker.</p>";
+        });
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+  </script>
+</body>
+</html>

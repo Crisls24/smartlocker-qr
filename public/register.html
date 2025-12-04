@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SmartLock - Registro</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🔐 Smart Lock — Registro</h1>
+    <form id="registerForm">
+      <input id="name" placeholder="Nombre" required />
+      <input id="email" placeholder="Correo" type="email" required />
+      <input id="password" placeholder="Contraseña" type="password" required />
+      <button type="submit">Registrar</button>
+    </form>
+    <p id="message"></p>
+    <p style="margin-top:8px">¿Ya tienes cuenta? <a href="/login.html">Inicia sesión</a></p>
+  </div>
+
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const msg = document.getElementById('message');
+
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ name, email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        msg.style.color = 'red';
+        msg.textContent = data.error || 'Error al registrar';
+        return;
+      }
+      msg.style.color = 'green';
+      msg.textContent = 'Registro exitoso. Redirigiendo a login...';
+      setTimeout(() => window.location.href = '/login.html', 1000);
+    });
+  </script>
+</body>
+</html>

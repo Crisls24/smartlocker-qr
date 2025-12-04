@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Lock - Login</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>🔐 Smart Lock Login</h1>
+    <form id="loginForm">
+      <input type="email" id="email" placeholder="Correo electrónico" required />
+      <input type="password" id="password" placeholder="Contraseña" required />
+      <button type="submit">Iniciar sesión</button>
+    </form>
+    <p id="message"></p>
+  </div>
+
+  <script>
+    const form = document.getElementById("loginForm");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+      if (data.token) {
+        localStorage.setItem("smartlock_token", data.token);
+        localStorage.setItem("smartlock_qr", data.qr);
+        localStorage.setItem("smartlock_user", JSON.stringify(data.user));
+        localStorage.setItem('smartlock_qrPayload', JSON.stringify({ userId: data.user.id, token: data.token }));
+        window.location.href = "dashboard.html";
+      } else {
+        document.getElementById("message").innerText = "❌ Credenciales inválidas";
+      }
+    });
+  </script>
+</body>
+</html>
