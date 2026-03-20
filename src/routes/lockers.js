@@ -1,9 +1,8 @@
 // src/routes/lockers.js
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const db = require('../db');
-const { sendEmail } = require('../mail');
-
+const db = require("../db");
+const { sendEmail } = require("../mail");
 
 // 🔹 GET /api/lockers → lista todos los lockers
 router.get('/', (req, res) => {
@@ -46,25 +45,21 @@ router.post('/assign', (req, res) => {
   );
 });
 
-// 🔹 GET /api/lockers/my-locker?token=...
-router.get('/my-locker', (req, res) => {
-  const token = req.query.token || req.headers['x-access-token'];
-  if (!token) return res.status(400).json({ error: 'Token requerido' });
+// 🔹 POST /api/lockers → crear locker nuevo
+router.post("/", (req, res) => {
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: "code requerido" });
 
-  db.get('SELECT user_id FROM sessions WHERE token = ?', [token], (err, session) => {
-    if (err) return res.status(500).json({ error: 'DB error' });
-    if (!session) return res.status(401).json({ error: 'Sesión inválida' });
+  db.run(
+    "INSERT INTO lockers (code, status) VALUES (?, ?)",
+    [code, "free"],
+    function (err) {
+      if (err)
+        return res.status(500).json({ error: "DB error o code duplicado" });
 
-    db.get(
-      'SELECT id, code, assigned_user_id, status FROM lockers WHERE assigned_user_id = ?',
-      [session.user_id],
-      (err, locker) => {
-        if (err) return res.status(500).json({ error: 'DB error' });
-        if (!locker) return res.json({ locker: null });
-        return res.json({ locker });
-      }
-    );
-  });
+      res.json({ ok: true, id: this.lastID, code });
+    },
+  );
 });
 
 // 🔹 POST /api/open-with-qr →(Mantenimiento Sprint 2)
@@ -73,7 +68,7 @@ router.post('/open-with-qr', (req, res) => {
 
   // Validación de entrada 
   if (!userId || !token) {
-    return res.status(400).json({ ok: false, error: 'Datos incompletos' });
+    return res.status(400).json({ ok: false, error: "Datos incompletos" });
   }
 
   // Verificar sesión primero
@@ -146,11 +141,12 @@ router.get('/logs', (req, res) => {
      ORDER BY access_logs.created_at DESC`,
     [],
     (err, rows) => {
-      if (err) return res.status(500).json({ error: 'DB error al obtener logs' });
+      if (err)
+        return res.status(500).json({ error: "DB error al obtener logs" });
+
       res.json({ logs: rows });
-    }
+    },
   );
 });
 
 module.exports = router;
-
