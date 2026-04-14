@@ -2,12 +2,17 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-const dbFile = path.join(__dirname, '..', 'smartlock.db');
+const dbFile = process.env.NODE_ENV === 'test' 
+  ? path.join(__dirname, '..', 'smartlock_test.db') 
+  : path.join(__dirname, '..', 'smartlock.db');
+
 const db = new sqlite3.Database(dbFile, (err) => {
   if (err) {
     console.error('Error abriendo base de datos:', err.message);
   } else {
-    console.log('Base de datos SQLite conectada:', dbFile);
+    if (process.env.NODE_ENV !== 'test') {
+      console.log('Base de datos SQLite conectada:', dbFile);
+    }
   }
 });
 
