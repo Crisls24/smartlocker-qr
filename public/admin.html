@@ -1,16 +1,13 @@
 <!doctype html>
 <html>
-
 <head>
   <meta charset="utf-8">
   <title>SmartLock - Admin</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="admin-style.css">
-  <script src="theme.js"></script>
-</head>
 
+</head>
 <body>
-  <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">🌓</button>
   <div class="container">
     <h1>Admin — Lockers</h1>
 
@@ -55,10 +52,10 @@
     document.getElementById('create').addEventListener('click', async () => {
       const code = document.getElementById('newCode').value.trim();
       if (!code) return;
-      await fetch('/api/lockers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code })
+      await fetch('/api/lockers', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ code }) 
       });
       document.getElementById('newCode').value = '';
       await loadLockers();
@@ -131,5 +128,6 @@
     loadLogs();
   </script>
 </body>
-
 </html>
+
+
