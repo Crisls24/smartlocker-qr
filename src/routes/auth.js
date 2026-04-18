@@ -42,7 +42,9 @@ router.post('/register', (req, res) => {
         const qr = await QRCode.toDataURL(payload, { errorCorrectionLevel: 'H' });
 
         // Guardar sesión en BD
-        db.run("INSERT INTO sessions (user_id, token) VALUES (?, ?)", [newUser.id, token]);
+        db.run("INSERT INTO sessions (user_id, token) VALUES (?, ?)", [newUser.id, token], (err) => {
+          if (err) console.error('Error creando sesión:', err);
+        });
 
         // Enviar correo con QR
         try {
@@ -103,6 +105,65 @@ router.get('/users', (req, res) => {
   db.all('SELECT id, name, email, dob, created_at FROM users', [], (err, rows) => {
     if (err) return res.status(500).json({ error: 'Error al obtener usuarios' });
     res.json({ users: rows });
+  });
+});
+
+// POST /api/open-with-qr
+router.post('/open-with-qr', (req, res) => {
+  const { userId, token } = req.body;
+  if (!userId || !token) return res.status(400).json({ ok: false, error: 'Faltan datos' });
+
+  db.get('SELECT * FROM sessions WHERE user_id = ? AND token = ?', [userId, token], (err, row) => {
+    if (err) return res.status(500).json({ ok: false, error: 'DB error' });
+    if (!row) return res.status(400).json({ ok: false, error: 'Sesión inválida' });
+
+    if (row.expires_at) {
+      const exp = new Date(row.expires_at);
+      if (exp < new Date()) return res.status(400).json({ ok: false, error: 'Sesión expirada' });
+    }
+
+    db.get('SELECT * FROM lockers WHERE assigned_user_id = ?', [userId], async (err, locker) => {
+      if (err) return res.status(500).json({ ok: false, error: 'DB error' });
+      if (!locker) {
+        db.run('INSERT INTO access_logs (user_id, locker_id, action, success) VALUES (?, ?, ?, ?)',
+          [userId, null, 'open_attempt', 0],
+          (err) => { if (err) console.error('Error en access_log:', err); }
+        );
+        return res.status(400).json({ ok: false, error: 'No hay locker asignado' });
+      }
+
+      db.run('UPDATE lockers SET status = ? WHERE id = ?', ['open', locker.id], async (err) => {
+        if (err) return res.status(500).json({ ok: false, error: 'DB error' });
+        db.run('INSERT INTO logs (user_id, locker_id, action) VALUES (?, ?, ?)',
+          [userId, locker.id, 'open'],
+          (err) => { if (err) console.error('Error en logs:', err); }
+        );
+
+
+        // Registrar apertura exitosa
+        db.run('INSERT INTO access_logs (user_id, locker_id, action, success) VALUES (?, ?, ?, ?)',
+          [userId, locker.id, 'open', 1]
+        );
+
+        // Enviar correo de notificación (NUEVO)
+        await sendEmail(
+          row.email,
+          `Locker ${locker.id} abierto 🔓`,
+          `
+            <h2>Locker Abierto</h2>
+            <p>El locker <strong>#${locker.id}</strong> fue abierto a las ${new Date().toLocaleString()}.</p>
+            <p>Si NO fuiste tú, reporta esto inmediatamente.</p>
+          `
+        );
+
+        // Mantener abierto 3s
+        setTimeout(() => {
+          db.run('UPDATE lockers SET status = ? WHERE id = ?', ['occupied', locker.id]);
+        }, 3000);
+
+        return res.json({ ok: true, message: 'Locker abierto (simulado)', lockerId: locker.id, notify: true });
+      });
+    });
   });
 });
 
