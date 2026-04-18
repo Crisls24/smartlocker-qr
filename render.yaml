@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: smartlocker-qr
+    runtime: node
+    plan: free
+    region: ohio
+    buildCommand: npm install
+    startCommand: node src/server.js
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: DISK_PATH
+        value: /data
+    disk:
+      name: smartlock-data
+      mountPath: /data
+      sizeGB: 1
