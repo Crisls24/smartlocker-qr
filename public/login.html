@@ -1,23 +1,68 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Smart Lock - Login</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
-  <div class="container">
-    <h1>🔐 Smart Lock Login</h1>
-    <form id="loginForm">
-      <input type="email" id="email" placeholder="Correo electrónico" required />
-      <input type="password" id="password" placeholder="Contraseña" required />
-      <button type="submit">Iniciar sesión</button>
-    </form>
-    <p id="message"></p>
+
+<body class="login-body">
+
+  <div class="login-split-layout">
+
+    <div class="login-left">
+      <div class="login-logo">
+        <i class="fa-solid fa-lock" style="color: var(--primary);"></i> SmartLocker
+      </div>
+
+      <div class="login-form-container">
+        <h1 class="login-title">Bienvenido</h1>
+        <p class="login-subtitle">Ingresa tus credenciales para acceder a tu SmartLock</p>
+
+        <form id="loginForm">
+          <div class="form-group">
+            <label>Correo Electrónico</label>
+            <input type="email" id="email" class="login-input" placeholder="ejemplo@correo.com" required />
+          </div>
+
+          <div class="form-group">
+            <label>Contraseña</label>
+            <div class="input-icon-group">
+              <input type="password" id="password" class="login-input" placeholder="••••••••" required />
+              <i class="fa-regular fa-eye-slash toggle-password" id="togglePassword"></i>
+            </div>
+          </div>
+
+          <div class="login-checkbox-group" style="margin-bottom: 2rem;">
+            <input type="checkbox" id="keep-logged" />
+            <label for="keep-logged" style="color: var(--text-muted); font-size: 0.9rem; margin-left: 8px;">Mantener sesión iniciada</label>
+          </div>
+
+          <button type="submit" class="login-btn">Iniciar Sesión</button>
+        </form>
+
+        <p id="message" style="text-align: center; margin-top: 15px; min-height: 20px;"></p>
+
+        <p class="login-footer-text">
+          ¿No tienes una cuenta? <a href="register.html">Regístrate aquí</a>
+        </p>
+      </div>
+    </div>
+
+    <div class="login-right">
+      <div class="login-image-wrapper">
+        <img src="assets/login_bg.png" alt="Seguridad Digital" class="login-bg-img">
+      </div>
+    </div>
+
   </div>
 
   <script>
+    // Tu lógica original de inicio de sesión intacta
     const form = document.getElementById("loginForm");
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -41,6 +86,17 @@
         document.getElementById("message").innerText = "❌ Credenciales inválidas";
       }
     });
+
+    // Pequeño script para que el ojito funcione al darle clic
+    const togglePassword = document.getElementById("togglePassword");
+    const passwordInput = document.getElementById("password");
+    togglePassword.addEventListener("click", function () {
+      const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+      passwordInput.setAttribute("type", type);
+      this.classList.toggle("fa-eye");
+      this.classList.toggle("fa-eye-slash");
+    });
   </script>
 </body>
+
 </html>

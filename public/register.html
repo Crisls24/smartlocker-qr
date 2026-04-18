@@ -1,47 +1,122 @@
 <!doctype html>
-<html>
+<html lang="es">
+
 <head>
-  <meta charset="utf-8">
-  <title>SmartLock - Registro</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartLocker - Registro</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
 </head>
-<body>
-  <div class="container">
-    <h1>🔐 Smart Lock — Registro</h1>
-    <form id="registerForm">
-      <input id="name" placeholder="Nombre" required />
-      <input id="email" placeholder="Correo" type="email" required />
-      <input id="password" placeholder="Contraseña" type="password" required />
-      <button type="submit">Registrar</button>
-    </form>
-    <p id="message"></p>
-    <p style="margin-top:8px">¿Ya tienes cuenta? <a href="/login.html">Inicia sesión</a></p>
+
+<body class="login-body">
+  <div class="login-split-layout">
+    <div class="login-left">
+      <div class="login-logo">
+        <i class="fa-solid fa-lock" style="color: var(--primary);"></i> SmartLocker
+      </div>
+
+      <div class="login-form-container">
+        <h1 class="login-title">Registrarse</h1>
+        <p class="login-subtitle">Únete a la experiencia de seguridad inteligente</p>
+
+        <form id="registerForm">
+          <div class="form-group">
+            <label>Nombre Completo</label>
+            <input type="text" id="name" class="login-input" placeholder="Juan Pérez" required />
+          </div>
+
+          <div class="form-group">
+            <label>Fecha de Nacimiento</label>
+            <input type="date" id="dob" class="login-input" required />
+          </div>
+
+          <div class="form-group">
+            <label>Correo Electrónico</label>
+            <input type="email" id="email" class="login-input" placeholder="ejemplo@correo.com" required />
+          </div>
+
+          <div class="form-group">
+            <label>Contraseña</label>
+            <div class="input-icon-group">
+              <input type="password" id="password" class="login-input" placeholder="••••••••" required />
+              <i class="fa-regular fa-eye-slash toggle-password" id="togglePassword"></i>
+            </div>
+          </div>
+
+          <button type="submit" class="login-btn">Crear Cuenta</button>
+        </form>
+
+        <p id="message" style="text-align: center; margin-top: 15px; min-height: 20px;"></p>
+
+        <p class="login-footer-text">
+          ¿Ya tienes una cuenta? <a href="login.html">Inicia sesión</a>
+        </p>
+      </div>
+    </div>
+
+    <div class="login-right">
+      <div class="login-image-wrapper">
+        <img src="assets/login_bg.png" alt="Seguridad Digital" class="login-bg-img" />
+      </div>
+    </div>
   </div>
 
   <script>
-    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const name = document.getElementById('name').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      const msg = document.getElementById('message');
+      const name = document.getElementById("name").value.trim();
+      const dob = document.getElementById("dob").value; // Recuperamos la fecha
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const msg = document.getElementById("message");
 
-      const res = await fetch('/api/register', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ name, email, password })
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        msg.style.color = 'red';
-        msg.textContent = data.error || 'Error al registrar';
+      // Validaciones Frontend
+      if (password.length < 6) {
+        msg.style.color = "red";
+        msg.textContent = "La contraseña debe tener al menos 6 caracteres.";
         return;
       }
-      msg.style.color = 'green';
-      msg.textContent = 'Registro exitoso. Redirigiendo a login...';
-      setTimeout(() => window.location.href = '/login.html', 1000);
+
+      msg.style.color = "black";
+      msg.textContent = "Procesando...";
+
+      try {
+        const res = await fetch("/api/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          // Enviamos el dob al servidor
+          body: JSON.stringify({ name, dob, email, password }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          msg.style.color = "red";
+          msg.textContent = data.error || "Error al registrar";
+          return;
+        }
+
+        msg.style.color = "green";
+        msg.textContent = "Registro exitoso. Redirigiendo a login...";
+        setTimeout(() => (window.location.href = "login.html"), 1500);
+      } catch (error) {
+        msg.style.color = "red";
+        msg.textContent = "Error de conexión con el servidor.";
+      }
+    });
+
+    // Script del ojito
+    const togglePassword = document.getElementById("togglePassword");
+    const passwordInput = document.getElementById("password");
+    togglePassword.addEventListener("click", function () {
+      const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+      passwordInput.setAttribute("type", type);
+      this.classList.toggle("fa-eye");
+      this.classList.toggle("fa-eye-slash");
     });
   </script>
 </body>
+
 </html>

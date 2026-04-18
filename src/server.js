@@ -26,6 +26,11 @@ app.use('/api/lockers', lockerRoutes);
 const logsRoutes = require('./routes/logs');
 app.use('/api/logs', logsRoutes);
 
+// Ruta raíz → login
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'login.html'));
+});
+
 // Ruta simple de salud
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
