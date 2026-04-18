@@ -2,9 +2,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-const dbFile = process.env.DISK_PATH 
-  ? path.join(process.env.DISK_PATH, 'smartlock.db')
-  : path.join(__dirname, '..', 'smartlock.db');
+const dbFile = path.join(__dirname, '..', 'smartlock.db');
 
 const db = new sqlite3.Database(dbFile, (err) => {
   if (err) {

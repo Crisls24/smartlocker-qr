@@ -9,9 +9,3 @@ services:
     envVars:
       - key: PORT
         value: 3000
-      - key: DISK_PATH
-        value: /data
-    disk:
-      name: smartlock-data
-      mountPath: /data
-      sizeGB: 1
