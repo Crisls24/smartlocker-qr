@@ -1,16 +1,17 @@
 const nodemailer = require('nodemailer');
+require('dotenv').config();
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'cricrilope3@gmail.com',
-    pass: 'rqnr gdnv dfnp upmj'
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD
   }
 });
 
 async function sendEmail(to, subject, html, attachmentUrl = null) {
   const mailOptions = {
-    from: '"SmartLock System" cricrilope3@gmail.com>',
+    from: `"SmartLock System" <${process.env.GMAIL_USER}>`,
     to,
     subject,
     html

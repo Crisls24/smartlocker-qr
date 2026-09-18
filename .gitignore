@@ -5,3 +5,7 @@ dist/
 package-lock.json
 smartlock.db
 .scannerwork
+coverage/
+tmp/
+token.txt
+user.txt
